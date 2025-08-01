@@ -8,7 +8,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +29,7 @@ public class JwtTokenProvider {
     }
 
     //JWT 토큰 생성
-    public String generateToken(JwtUser jwtUser, int tokenValidityMilliSeconds) {
+    public String generateToken(JwtUser jwtUser, long tokenValidityMilliSeconds) {
         Date now = new Date(); //Data객체를 기본생성자로 만들면 현재일시 정보로 객체화
         return Jwts.builder()
                 //header
@@ -39,7 +39,7 @@ public class JwtTokenProvider {
                 //payload
                 .issuer(constJwt.getIssuer())
                 .issuedAt(now) //발행일시(토큰 생성일시)
-                .expiration(new Date(now.getDate() + tokenValidityMilliSeconds)) //만료일시(토큰 만료일시)
+                .expiration(new Date(now.getTime() + tokenValidityMilliSeconds)) //만료일시(토큰 만료일시)
                 .claim(constJwt.getClaimKey(), makeClaimByUserToJson(jwtUser))
 
                 //signature
@@ -71,7 +71,7 @@ public class JwtTokenProvider {
         return Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
+                .parseSignedClaims(token)
                 .getPayload();
     }
 }

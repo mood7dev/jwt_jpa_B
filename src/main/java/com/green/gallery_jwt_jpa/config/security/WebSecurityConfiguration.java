@@ -7,6 +7,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 /*
 @Configuration - bean 등록, Bean 메소드가 있다.
 Bean 메소드는 무조건 싱글톤으로 처리된다.
@@ -15,6 +17,7 @@ Bean 메소드는 무조건 싱글톤으로 처리된다.
 @RequiredArgsConstructor
 public class WebSecurityConfiguration {
     private final TokenAuthenticationFilter tokenAuthenticationFilter;
+    private final TokenAuthenticationEntryPoint tokenAuthenTicationEntryPoint;
 
     //Bean 메소드
     @Bean
@@ -26,9 +29,11 @@ public class WebSecurityConfiguration {
                 .csrf(csrfSpec -> csrfSpec.disable()) // BE - csrf라는 공격이 있는데 공격을 막는 것이 기본으로 활성화 되어 있는데
                 // 세션을 이용한 공격이다. 세션을 어차피 안 쓰니까 비활성화
                 .authorizeHttpRequests(req -> req.requestMatchers("/api/v1/cart").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/item").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/item").hasRole("USER_2")
                         .anyRequest().permitAll()
                 )
+                .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling( e -> e.authenticationEntryPoint(tokenAuthenTicationEntryPoint))
                 .build();
     }
 
