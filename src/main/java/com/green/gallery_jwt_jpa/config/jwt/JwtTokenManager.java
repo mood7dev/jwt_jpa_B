@@ -2,11 +2,14 @@ package com.green.gallery_jwt_jpa.config.jwt;
 
 import com.green.gallery_jwt_jpa.config.constants.ConstJwt;
 import com.green.gallery_jwt_jpa.config.model.JwtUser;
+import com.green.gallery_jwt_jpa.config.model.UserPrincipal;
 import com.green.gallery_jwt_jpa.config.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 //JWT 총괄 책임자
@@ -32,14 +35,17 @@ public class JwtTokenManager {
     }
 
     public void setAccessTokenInCookie(HttpServletResponse response, String accessToken) {
-        cookieUtils.setCookie(response, constJwt.getAccessTokenCookieName(),
-                accessToken, constJwt.getAccessTokenCookieValiditySeconds(), constJwt.getAccessTokenCookiePath());
+        cookieUtils.setCookie(response, constJwt.getAccessTokenCookieName(), accessToken
+                , constJwt.getAccessTokenCookieValiditySeconds(), constJwt.getAccessTokenCookiePath());
+    }
+
+    public String getAccessTokenFromCookie(HttpServletRequest request) {
+        return cookieUtils.getValue(request, constJwt.getAccessTokenCookieName());
     }
 
     public void deleteAccessTokenInCookie(HttpServletResponse response) {
         cookieUtils.deleteCookie(response, constJwt.getAccessTokenCookieName());
     }
-
 
     public String generateRefreshToken(JwtUser jwtUser) {
         return jwtTokenProvider.generateToken(jwtUser, constJwt.getRefreshTokenValidityMilliseconds());
@@ -57,12 +63,12 @@ public class JwtTokenManager {
         cookieUtils.deleteCookie(response, constJwt.getRefreshTokenCookieName());
     }
 
-    public JwtUser getJwtUserFromToken(String token) {
-        return jwtTokenProvider.getJwtUserFromToken(token);
-    }
-
     public String getRefreshTokenFromCookie(HttpServletRequest request) {
         return cookieUtils.getValue(request, constJwt.getRefreshTokenCookieName());
+    }
+
+    public JwtUser getJwtUserFromToken(String token) {
+        return jwtTokenProvider.getJwtUserFromToken(token);
     }
 
     public void reissue(HttpServletRequest request, HttpServletResponse response) {
@@ -82,5 +88,13 @@ public class JwtTokenManager {
     public void logout(HttpServletResponse response) {
         deleteAccessTokenInCookie(response);
         deleteRefreshTokenInCookie(response);
+    }
+
+    public Authentication getAuthentication(HttpServletRequest request) {
+        String accessToken = getAccessTokenFromCookie(request);
+        if(accessToken == null){ return null; }
+        JwtUser jwtUser = getJwtUserFromToken(accessToken);
+        UserPrincipal userPrincipal = new UserPrincipal(jwtUser.getSignedUserId(), jwtUser.getRoles());
+        return new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
     }
 }

@@ -1,52 +1,56 @@
 package com.green.gallery_jwt_jpa.account;
 
+import com.green.gallery_jwt_jpa.config.jwt.JwtTokenManager;
 import jakarta.servlet.http.HttpServletRequest;
 import com.green.gallery_jwt_jpa.account.etc.AccountConstants;
 import com.green.gallery_jwt_jpa.account.model.AccountJoinReq;
 import com.green.gallery_jwt_jpa.account.model.AccountLoginReq;
 import com.green.gallery_jwt_jpa.account.model.AccountLoginRes;
 import com.green.gallery_jwt_jpa.config.util.HttpUtils;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
 @Slf4j
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/account")
 public class AccountController {
-    private final com.green.gallery_jwt_jpa.account.AccountService accountService;
+    private final AccountService accountService;
+    private final JwtTokenManager jwtTokenManager;
 
     @PostMapping("/join")
-    public ResponseEntity<?> join(@RequestBody AccountJoinReq p) {
-        // 유효성 검사: name, loginId, loginPw 모두 값이 있어야 함
-        if (!StringUtils.hasLength(p.getName())
-                || !StringUtils.hasLength(p.getLoginId())
-                || !StringUtils.hasLength(p.getLoginPw())) {
-            return ResponseEntity.badRequest().body("입력값 누락");
+    public ResponseEntity<?> join(@RequestBody AccountJoinReq req) {
+        if(!StringUtils.hasLength(req.getName())
+                || !StringUtils.hasLength(req.getLoginId())
+                || !StringUtils.hasLength(req.getLoginPw())) {
+            return ResponseEntity.badRequest().build(); //state: 400
         }
 
-        int result = accountService.join(p);
-        return ResponseEntity.ok("회원가입 성공: " + result);
+        int result = accountService.join(req);
+        return ResponseEntity.ok(result); //state: 200
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(HttpServletRequest httpReq, @RequestBody AccountLoginReq p) {
-        AccountLoginRes result = accountService.login(p);
-        if (result == null) {
+    public ResponseEntity<?> login(HttpServletResponse response, @RequestBody AccountLoginReq req) {
+        AccountLoginRes result = accountService.login(req);
+        if(result == null) {
             return ResponseEntity.notFound().build();
         }
-        //세션처리 : 로그인 중에 로그인 정보 임시 저장소
-        HttpUtils.setSession(httpReq,AccountConstants .MEMBER_ID_NAME, result.getId());
+        jwtTokenManager.issue(response, result.getJwtUser());
+
+        //세션 처리
+        //HttpUtils.setSession(httpReq, AccountConstants.MEMBER_ID_NAME, result.getId());
 
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/check")
     public ResponseEntity<?> check(HttpServletRequest httpReq) {
-        Integer id = (Integer)HttpUtils.getSessionValue(httpReq, AccountConstants .MEMBER_ID_NAME);
+        Integer id = (Integer)HttpUtils.getSessionValue(httpReq, AccountConstants.MEMBER_ID_NAME);
         log.info("id: {}", id);
         return ResponseEntity.ok(id);
     }
@@ -56,4 +60,5 @@ public class AccountController {
         HttpUtils.removeSessionValue(httpReq, AccountConstants.MEMBER_ID_NAME);
         return ResponseEntity.ok(1);
     }
+
 }

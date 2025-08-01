@@ -6,7 +6,7 @@ constants:
     issuer: green502@green.com #발행자 이름
     bearer-format: JWT
     claim-key: signedUser
-    secret-key: GreenArtClass502MsaRunningOnCoffeeLOLOkkk #깃허브에 올라가면 안됨 지금은 연습용
+    secret-key: DaeguGreenArtAcademyClass502MsaClassFightingkkkkkk #깃허브에 올라가면 안됨 지금은 연습용
     access-token-cookie-name: access-token
     access-token-cookie-path: / #모든 요청마다 쿠키값 넘어옴
     access-token-cookie-validity-seconds: 900 #15분 (s) 60*15
@@ -17,12 +17,9 @@ constants:
     refresh-token-cookie-validity-seconds: 1_296_000 #15일 (s) 60 * 60 * 24 * 15
     refresh-token-validity-milliseconds: 1_296_000_000 #15일 (ms) 60 * 60 * 24 * 15 * 1000
 
-Spring:
-  application:
-    name: gallery
-
+spring:
   datasource:
-    url: jdbc:mariadb://localhost/gallery
+    url: jdbc:log4jdbc:mariadb://localhost/gallery
     username: root
     password: green502
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy

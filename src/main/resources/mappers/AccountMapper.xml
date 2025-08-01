@@ -13,4 +13,11 @@
     FROM members
     WHERE login_id = #{loginId}
     </select>
+
+
+    <select id="findAllRolesByMemberId">
+        SELECT role_name
+        FROM members_roles
+        WHERE member_id = #{memberId}
+    </select>
 </mapper>

@@ -8,10 +8,11 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class JwtUser {
-    private long signedUserId;
-    private List<String> roles;
+    private int signedUserId;
+    private List<String> roles; //인가 처리 때 사용
     /*
     role 이름은 ROLE_아무거나
-    인가 처리 ROLE_USER, ROLE_ADMIN, _ROLE_MAMAGER, ROLE_LEVEL_1...
+
+    ROLE_USER, ROLE_ADMIN, ROLE_MANAGER, ROLE_LEVEL_1 ...
      */
 }
