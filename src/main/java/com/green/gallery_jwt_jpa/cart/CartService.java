@@ -5,7 +5,10 @@ import com.green.gallery_jwt_jpa.cart.model.CartGetRes;
 import com.green.gallery_jwt_jpa.cart.model.CartPostReq;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -15,31 +18,23 @@ import java.util.List;
 public class CartService {
     private final CartMapper cartMapper;
 
-    //전부 (특정 회원의 특정 상품)
-
-    //장바구니 데이터 저장
-    public int save(CartPostReq p) {
-        return cartMapper.save(p);
+    public int save(CartPostReq req) {
+        try {
+            return cartMapper.save(req);
+        } catch (DuplicateKeyException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 카트에 등록되어 있습니다.");
+        }
     }
 
-    //장바구니 상품 데이터 삭제
-    public int remove(CartDeleteReq p){
-        return cartMapper.deleteByCartIdAndMemberId(p);
-    }
-
-    // 장바구니 전체 삭제
-    public int removeAll(int memberId) {
-        return cartMapper.deleteAllCart(memberId);
-    }
-
-    //장바구니 상품 데이터 목록 조회
-    public List<CartGetRes> findAll(int memberId){
+    public List<CartGetRes> findAll(int memberId) {
         return cartMapper.findAllWithItemByMemberId(memberId);
     }
 
-    //장바구니 상품 데이터 조회
+    public int remove(CartDeleteReq req) {
+        return cartMapper.deleteByCartIdAndMemberId(req);
+    }
 
-
-
+    public int removeAll(int memberId) {
+        return cartMapper.deleteByMemberId(memberId);
+    }
 }
-

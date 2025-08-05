@@ -12,17 +12,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ConstJwt {
     private final String issuer;
     private final String bearerFormat;
+
     private final String claimKey;
     private final String secretKey;
 
     private final String accessTokenCookieName;
     private final String accessTokenCookiePath;
-    private final int  accessTokenCookieValiditySeconds;
-    private final int accessTokenValidityMilliseconds;
+    private final int accessTokenCookieValiditySeconds;
+    private final long accessTokenValidityMilliseconds;
 
     private final String refreshTokenCookieName;
     private final String refreshTokenCookiePath;
     private final int refreshTokenCookieValiditySeconds;
-    private final int refreshTokenValidityMilliseconds;
+    private final long refreshTokenValidityMilliseconds;
 
 }

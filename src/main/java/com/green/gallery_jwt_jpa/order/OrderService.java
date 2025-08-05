@@ -1,8 +1,9 @@
 package com.green.gallery_jwt_jpa.order;
 
-import com.green.gallery_jwt_jpa.cart.CartMapper;
+
+import com.green.gallery_jwt_jpa.cart.*;
 import com.green.gallery_jwt_jpa.item.ItemMapper;
-import com.green.gallery_jwt_jpa.item.model.ItemGetRes;
+import com.green.gallery_jwt_jpa.item.model.*;
 import com.green.gallery_jwt_jpa.order.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,64 +12,55 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-        @Slf4j
-        @Service
-        @RequiredArgsConstructor
-        public class OrderService {
-            private final OrderMapper orderMapper;
-            private final ItemMapper itemMapper;
-            private final OrderItemMapper orderItemMapper;
-            private final CartMapper cartMapper;
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class OrderService {
+    private final OrderMapper orderMapper;
+    private final OrderItemMapper orderItemMapper;
+    private final ItemMapper itemMapper;
+    private final CartMapper cartMapper;
 
-            @Transactional
-            public int saveOrder(OrderPostReq p, int logginedMemberId) {
-                // 1. 상품 정보 조회
-                List<ItemGetRes> itemList = itemMapper.findAllByIdIn(p.getItemIds());
+    @Transactional
+    public int saveOrder(OrderPostReq req, int logginedMemberId) {
+        //상품 정보 DB로 부터 가져온다.
+        List<ItemGetRes> itemList = itemMapper.findAllByIdIn(req.getItemIds());
 
-                // 2. 총 금액 계산
-                long total=0;
-                for (ItemGetRes item : itemList) {
-                    total += item.getPrice() - (item.getPrice() * item.getDiscountPer() / 100.0);
-                    // 수량 1개로 계산
-                }
-                log.info("total = {}원",  total);    //총 구매가격 콘솔에 출력
-
-                // 3. OrderPostDto 객체 생성 (빌더 패턴)
-                OrderPostDto dto = OrderPostDto.builder()
-                        .memberId(logginedMemberId)
-                        .name(p.getName())
-                        .address(p.getAddress())
-                        .payment(p.getPayment())
-                        .cardNumber(p.getCardNumber())
-                        .amount(total)
-                        .build();
-
-                log.info("before save dto = {}", dto);
-
-                // 4. 주문 저장
-                orderMapper.save(dto);
-                log.info("after save dto = {}", dto);
-
-                // 주문 아이템 DTO 생성
-                OrderItemPostDto orderItemPostDto = new OrderItemPostDto(dto.getOrderId(), p.getItemIds());
-
-                //상품리스트 등록
-                orderItemMapper.save(orderItemPostDto);
-
-                // 주문 완료 후 장바구니 비우기
-                cartMapper.deleteAllCart(logginedMemberId);
-                return 1;
-            }
-
-            public List<OrderGetRes> findAllByMemberId(int memberId) {
-                return orderMapper.findAllByMemberIdOrderByIdDesc(memberId);
-            }
-
-            public OrderDetailGetRes detail(OrderDetailGetReq p) {
-                OrderDetailGetRes result = orderMapper.findByIdAndMemberId(p);
-                List<OrderDetailDto> items = orderItemMapper.findAllByOrderId(p.getOrderId());
-                result.setItems(items);
-                log.info("result={}", result);
-                return result;
-            }
+        long amount = 0;
+        for (ItemGetRes item : itemList) {
+            amount += item.getPrice() - (item.getPrice() * item.getDiscountPer() / 100);
         }
+        log.info("amount={}", amount);
+
+        OrderPostDto orderPostDto = new OrderPostDto();
+        orderPostDto.setMemberId(logginedMemberId);
+        orderPostDto.setName(req.getName());
+        orderPostDto.setAddress(req.getAddress());
+        orderPostDto.setPayment(req.getPayment());
+        orderPostDto.setCardNumber(req.getCardNumber());
+        orderPostDto.setAmount(amount);
+        log.info("before-orderPostDto={}", orderPostDto);
+        orderMapper.save(orderPostDto);
+        log.info("after-orderPostDto={}", orderPostDto);
+
+        // OrderItemPostDto 객체화 하시면서 데이터 넣어주세요.
+        OrderItemPostDto orderItemPostDto = new OrderItemPostDto(orderPostDto.getOrderId(), req.getItemIds());
+        orderItemMapper.save(orderItemPostDto);
+
+        cartMapper.deleteByMemberId(logginedMemberId);
+
+        return 1;
+    }
+
+    public List<OrderGetRes> findAllByMemberId(int memberId) {
+        return orderMapper.findAllByMemberIdOrderByIdDesc(memberId);
+    }
+
+    public OrderDetailGetRes detail(OrderDetailGetReq req) {
+        OrderDetailGetRes result = orderMapper.findByOrderIdAndMemberId(req);
+        List<OrderDetailDto> items = orderItemMapper.findAllByOrderId(req.getOrderId());
+        result.setItems(items);
+        log.info("result={}", result);
+        return result;
+    }
+}

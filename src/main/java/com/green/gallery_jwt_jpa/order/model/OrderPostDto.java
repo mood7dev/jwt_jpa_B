@@ -1,11 +1,11 @@
 package com.green.gallery_jwt_jpa.order.model;
 
-import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @Getter
-@Builder
+@Setter
 @ToString
 public class OrderPostDto {
     private int orderId;

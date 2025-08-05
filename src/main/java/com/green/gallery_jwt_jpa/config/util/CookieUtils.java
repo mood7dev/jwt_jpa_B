@@ -4,7 +4,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 //쿠키에 데이터 담고 빼고 할 때 사용하는 객체
 @Slf4j
@@ -27,7 +29,7 @@ public class CookieUtils {
 
     public String getValue(HttpServletRequest request, String name) {
         Cookie cookie = getCookie(request, name);
-        if(cookie == null){return null;}
+        if(cookie == null) { return null; }
         return cookie.getValue();
     }
 
@@ -41,11 +43,10 @@ public class CookieUtils {
                 }
             }
         }
-        //TODO: 예외 처리
-        return null;
+    return null;
     }
 
-    public void deleteCookie(HttpServletResponse response, String name) {
-        setCookie(response, name, null, 0, "/");
+    public void deleteCookie(HttpServletResponse response, String name, String path) {
+        setCookie(response, name, null, 0, path);
     }
 }

@@ -1,6 +1,5 @@
 package com.green.gallery_jwt_jpa.order.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -13,7 +12,5 @@ public class OrderPostReq {
     private String address;
     private String payment;
     private String cardNumber;
-
-    @JsonProperty("itemIds")
     private List<Integer> itemIds;
 }

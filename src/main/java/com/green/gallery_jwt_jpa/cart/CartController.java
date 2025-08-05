@@ -1,5 +1,6 @@
 package com.green.gallery_jwt_jpa.cart;
 
+import com.green.gallery_jwt_jpa.config.model.UserPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import com.green.gallery_jwt_jpa.account.etc.AccountConstants;
 import com.green.gallery_jwt_jpa.cart.model.CartDeleteReq;
@@ -9,6 +10,7 @@ import com.green.gallery_jwt_jpa.config.util.HttpUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,51 +20,34 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/cart")
 public class CartController {
-
     private final CartService cartService;
-    private final CartMapper cartMapper;
 
     @PostMapping
-    public ResponseEntity<?> save(HttpServletRequest httpReq, @RequestBody CartPostReq p) {
-        Integer loggedInMemberIdObj = (Integer) HttpUtils.getSessionValue(httpReq, AccountConstants.MEMBER_ID_NAME);
-        if (loggedInMemberIdObj == null) {
-            return ResponseEntity.status(401).body("로그인이 필요합니다.");
-        }
-        int loggedInMemberId = loggedInMemberIdObj.intValue();
-        p.setMemberId(loggedInMemberId);
-
-        // 중복 체크
-        int count = cartMapper.countByMemberIdAndItemId(p.getMemberId(), p.getItemId());
-        if (count > 0) {
-            return ResponseEntity.status(409).body("이미 장바구니에 있는 상품입니다.");
-        }
-
-        // 저장
-        cartService.save(p);
-        return ResponseEntity.ok("장바구니 추가 완료");
+    public ResponseEntity<?> save(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody CartPostReq req) {
+        log.info("req: {}", req);
+        req.setMemberId(userPrincipal.getMemberId());
+        int result = cartService.save(req);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping
-    public ResponseEntity<?> getCart(HttpServletRequest httpReq) {
-        int loggedInMemberId = (int) HttpUtils.getSessionValue(httpReq, AccountConstants.MEMBER_ID_NAME);
-        List<CartGetRes> result = cartService.findAll(loggedInMemberId);
+    public ResponseEntity<?> getCart(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("memberId: {}", userPrincipal.getMemberId());
+        List<CartGetRes> result = cartService.findAll(userPrincipal.getMemberId());
         return ResponseEntity.ok(result);
     }
 
-    //부분 삭제
     @DeleteMapping("/{cartId}")
-    public ResponseEntity<?> delete(HttpServletRequest httpReq, @PathVariable int cartId) {
-        int loggedInMemberId = (int)HttpUtils.getSessionValue(httpReq, AccountConstants.MEMBER_ID_NAME);
-       CartDeleteReq p = new CartDeleteReq(cartId, loggedInMemberId);
-        int result = cartService.remove(p);
+    public ResponseEntity<?> deleteMemberItem(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable int cartId) {
+        CartDeleteReq req = new CartDeleteReq(cartId, userPrincipal.getMemberId());
+        int result = cartService.remove(req);
         return ResponseEntity.ok(result);
     }
 
-    //전체 삭제
     @DeleteMapping
-    public ResponseEntity<?> deleteAll(HttpServletRequest httpReq, @ModelAttribute CartDeleteReq p) {
-        int loggedInMemberId = (int)HttpUtils.getSessionValue(httpReq, AccountConstants.MEMBER_ID_NAME);
-        int result = cartService.removeAll(loggedInMemberId);
+    public ResponseEntity<?> deleteMemberCart(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        int logginedMemberId = userPrincipal.getMemberId();
+        int result = cartService.removeAll(logginedMemberId);
         return ResponseEntity.ok(result);
     }
 }

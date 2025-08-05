@@ -1,15 +1,15 @@
 package com.green.gallery_jwt_jpa.order;
 
-import jakarta.servlet.http.HttpServletRequest;
-import com.green.gallery_jwt_jpa.account.etc.AccountConstants;
+import com.green.gallery_jwt_jpa.config.model.UserPrincipal;
 import com.green.gallery_jwt_jpa.config.util.HttpUtils;
-import com.green.gallery_jwt_jpa.order.model.OrderDetailGetReq;
-import com.green.gallery_jwt_jpa.order.model.OrderDetailGetRes;
-import com.green.gallery_jwt_jpa.order.model.OrderGetRes;
-import com.green.gallery_jwt_jpa.order.model.OrderPostReq;
+import com.green.gallery_jwt_jpa.order.model.*;
+import com.green.gallery_jwt_jpa.account.etc.AccountConstants;
+import jakarta.servlet.http.HttpServletRequest;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,24 +22,24 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    ResponseEntity<?> add(HttpServletRequest httpReq, @RequestBody OrderPostReq p) {
-        int logginedMemberId = (int) HttpUtils.getSessionValue(httpReq, AccountConstants.MEMBER_ID_NAME);
-        log.info("p: {}", p);
-        int result = orderService.saveOrder(p, logginedMemberId);
+    public ResponseEntity<?> add(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody OrderPostReq req) {
+        int logginedMemberId = userPrincipal.getMemberId();
+        log.info("req: {}", req);
+        int result = orderService.saveOrder(req, logginedMemberId);
         return ResponseEntity.ok(result);
+        //return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping
-    public ResponseEntity<?> findAllByMemberIdOrderByIdDesc(HttpServletRequest httpReq) {
-        int logginedMemberId = (int) HttpUtils.getSessionValue(httpReq, AccountConstants.MEMBER_ID_NAME);
+    public ResponseEntity<?> findAllByMemberIdOrderByIdDesc(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        int logginedMemberId = userPrincipal.getMemberId();
         List<OrderGetRes> result = orderService.findAllByMemberId(logginedMemberId);
         return ResponseEntity.ok(result);
     }
 
-    //단일용
     @GetMapping("/{orderId}")
-    public ResponseEntity<?> findDetail(HttpServletRequest httpReq, @PathVariable int orderId) {
-        int logginedMemberId = (int) HttpUtils.getSessionValue(httpReq, AccountConstants.MEMBER_ID_NAME);
+    public ResponseEntity<?> findDetail(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable int orderId) {
+        int logginedMemberId = userPrincipal.getMemberId();
         OrderDetailGetReq req = new OrderDetailGetReq();
         req.setOrderId(orderId);
         req.setMemberId(logginedMemberId);
