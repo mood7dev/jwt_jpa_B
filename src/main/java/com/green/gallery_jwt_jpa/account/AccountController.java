@@ -2,15 +2,12 @@ package com.green.gallery_jwt_jpa.account;
 
 import com.green.gallery_jwt_jpa.config.jwt.JwtTokenManager;
 import jakarta.servlet.http.HttpServletRequest;
-import com.green.gallery_jwt_jpa.account.etc.AccountConstants;
 import com.green.gallery_jwt_jpa.account.model.AccountJoinReq;
 import com.green.gallery_jwt_jpa.account.model.AccountLoginReq;
 import com.green.gallery_jwt_jpa.account.model.AccountLoginRes;
-import com.green.gallery_jwt_jpa.config.util.HttpUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -30,9 +27,8 @@ public class AccountController {
                 || !StringUtils.hasLength(req.getLoginPw())) {
             return ResponseEntity.badRequest().build(); //state: 400
         }
-
-        int result = accountService.join(req);
-        return ResponseEntity.ok(result); //state: 200
+        accountService.join(req);
+        return ResponseEntity.ok(1); //state: 200
     }
 
     @PostMapping("/login")

@@ -1,10 +1,8 @@
 package com.green.gallery_jwt_jpa.item.model;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
-@Setter
 @Getter
 @ToString
 public class ItemGetRes {

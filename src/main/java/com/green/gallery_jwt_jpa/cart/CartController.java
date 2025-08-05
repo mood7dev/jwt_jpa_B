@@ -1,12 +1,9 @@
 package com.green.gallery_jwt_jpa.cart;
 
 import com.green.gallery_jwt_jpa.config.model.UserPrincipal;
-import jakarta.servlet.http.HttpServletRequest;
-import com.green.gallery_jwt_jpa.account.etc.AccountConstants;
 import com.green.gallery_jwt_jpa.cart.model.CartDeleteReq;
 import com.green.gallery_jwt_jpa.cart.model.CartGetRes;
 import com.green.gallery_jwt_jpa.cart.model.CartPostReq;
-import com.green.gallery_jwt_jpa.config.util.HttpUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +23,8 @@ public class CartController {
     public ResponseEntity<?> save(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody CartPostReq req) {
         log.info("req: {}", req);
         req.setMemberId(userPrincipal.getMemberId());
-        int result = cartService.save(req);
-        return ResponseEntity.ok(result);
+        cartService.save(req);
+        return ResponseEntity.ok(1);
     }
 
     @GetMapping
@@ -46,7 +43,7 @@ public class CartController {
 
     @DeleteMapping
     public ResponseEntity<?> deleteMemberCart(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        int logginedMemberId = userPrincipal.getMemberId();
+        long logginedMemberId = userPrincipal.getMemberId();
         int result = cartService.removeAll(logginedMemberId);
         return ResponseEntity.ok(result);
     }

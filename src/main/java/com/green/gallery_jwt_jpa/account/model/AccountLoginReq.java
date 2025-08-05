@@ -1,4 +1,3 @@
-
 package com.green.gallery_jwt_jpa.account.model;
 
 import lombok.Getter;
