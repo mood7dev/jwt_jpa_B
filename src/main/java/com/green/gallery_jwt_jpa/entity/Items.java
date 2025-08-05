@@ -19,11 +19,11 @@ public class Items extends  Created {
     private String name;
 
     @Column(nullable = false, length = 100)
-    private String img_path;
+    private String imgPath;
 
     @Column(nullable = false)
     private int price;
 
     @Column(nullable = false)
-    private int discount_per;
+    private int discountPer;
 }

@@ -16,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemController {
     private final ItemService itemService;
+    private final ItemRepository itemRepository;
 
     @PostMapping
     public ResponseEntity<?> addProduct(@RequestPart MultipartFile img
@@ -27,7 +28,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public ResponseEntity<?> readAll(@RequestParam(name = "id", required = false) ArrayList<Integer> ids) {
+    public ResponseEntity<?> readAll(@RequestParam(name = "id", required = false) ArrayList<Long> ids) {
         log.info("ids: {}", ids);
         List<ItemGetRes> items = itemService.findAll(ids);
         return ResponseEntity.ok(items);

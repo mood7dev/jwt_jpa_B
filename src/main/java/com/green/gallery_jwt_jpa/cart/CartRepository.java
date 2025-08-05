@@ -1,7 +1,7 @@
 package com.green.gallery_jwt_jpa.cart;
 
 import com.green.gallery_jwt_jpa.entity.Carts;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CartRepository extends CrudRepository<Carts, Long> {
+public interface CartRepository extends JpaRepository<Carts, Long> {
 }
